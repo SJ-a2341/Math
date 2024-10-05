@@ -1,0 +1,213 @@
+#include <iostream>
+#include <stack>
+#include <vector>
+#include <iomanip>
+using namespace std;
+
+int checknum(const string& k) {
+    vector<string> temp;
+    int bcount=0;
+    for (int i = 0; i < k.size(); i++) {
+        if (k[i] == '-') {
+            temp.push_back("->");
+            i++;
+        }
+        else {
+            temp.push_back(string(1, k[i]));
+        }
+    }
+    for (int j = 0; j < temp.size(); j++) {
+        
+        if (temp[j] == "~" || temp[j] == "v" || temp[j] == "^" || temp[j] == "->") {
+            
+            bcount++;
+        }
+        else if( temp[j] !="P" && temp[j] != "Q"&& temp[j] != "R") {
+            return 2;
+        }
+    }
+    
+    if (bcount > 4) {
+        return 1;
+
+    }
+    return 0;
+}
+
+bool applyOp(char op, bool a, bool b = false) {
+    switch (op) {
+    case '~': return !a;
+    case '^': return a && b;
+    case 'v': return a || b;
+    case '-': return !a || b;
+    default: return false;
+    }
+}
+
+bool stringToBool(const string& str) {
+    return str == "1";
+}
+
+string boolToString(bool a) {
+    return a ? "1" : "0";
+}
+
+void evaluationTitle(const string& k) {
+    vector<string> temp;
+    vector<string> a = { "P", "Q", "R" };
+
+    for (int i = 0; i < k.size(); i++) {
+        if (k[i] == '-') {
+            temp.push_back("->");
+            i++;
+        }
+        else {
+            temp.push_back(string(1, k[i]));
+        }
+    }
+
+    for (int j = 0; j < temp.size(); j++) {
+        if (temp[j] == "~") {
+            temp[j] = "~" + temp[j + 1];
+            a.push_back(temp[j]);
+            temp.erase(temp.begin() + j + 1);
+        }
+    }
+
+    for (int k = 0; k < temp.size(); k++) {
+        if (temp[k] == "^") {
+            temp[k] = temp[k - 1] + "^" + temp[k + 1];
+            a.push_back(temp[k]);
+            temp.erase(temp.begin() + k - 1);
+            temp.erase(temp.begin() + k);
+            k--; // 인덱스 조정
+        }
+    }
+
+    for (int l = 0; l < temp.size(); l++) {
+        if (temp[l] == "v") {
+            temp[l] = temp[l - 1] + "v" + temp[l + 1];
+            a.push_back(temp[l]);
+            temp.erase(temp.begin() + l - 1);
+            temp.erase(temp.begin() + l);
+            l--; // 인덱스 조정
+        }
+    }
+
+    for (int m = 0; m < temp.size(); m++) {
+        if (temp[m] == "->") {
+            temp[m] = temp[m - 1] + "->" + temp[m + 1];
+            a.push_back(temp[m]);
+            temp.erase(temp.begin() + m - 1);
+            temp.erase(temp.begin() + m);
+            m--; // 인덱스 조정
+        }
+    }
+
+    for (int n = 0; n < a.size(); n++) {
+        cout << setw(10) << a[n];
+    }
+    cout << endl;
+}
+
+void evaluationTruthTable(const string& k, bool P, bool Q, bool R) {
+    vector<string> temp;
+    vector<bool> a = { P, Q, R };
+
+    for (int i = 0; i < k.size(); i++) {
+        if (k[i] == '-') {
+            temp.push_back("->");
+            i++;
+        }
+        else if (k[i] == 'P') {
+            temp.push_back(boolToString(P));
+        }
+        else if (k[i] == 'Q') {
+            temp.push_back(boolToString(Q));
+        }
+        else if (k[i] == 'R') {
+            temp.push_back(boolToString(R));
+        }
+        else {
+            temp.push_back(string(1, k[i]));
+        }
+    }
+
+    for (int j = 0; j < temp.size(); j++) {
+        if (temp[j] == "~") {
+            bool temp2 = stringToBool(temp[j + 1]);
+            temp[j] = boolToString(applyOp('~', temp2));
+            a.push_back(stringToBool(temp[j]));
+            temp.erase(temp.begin() + j + 1);
+        }
+    }
+
+    for (int k = 0; k < temp.size(); k++) {
+        if (temp[k] == "^") {
+            bool temp2 = stringToBool(temp[k + 1]);
+            bool temp3 = stringToBool(temp[k - 1]);
+            temp[k] = boolToString(applyOp('^', temp3, temp2));
+            a.push_back(stringToBool(temp[k]));
+            temp.erase(temp.begin() + k + 1);
+            temp.erase(temp.begin() + k - 1);
+            k--;
+        }
+    }
+
+    for (int l = 0; l < temp.size(); l++) {
+        if (temp[l] == "v") {
+            bool temp2 = stringToBool(temp[l + 1]);
+            bool temp3 = stringToBool(temp[l - 1]);
+            temp[l] = boolToString(applyOp('v', temp3, temp2));
+            a.push_back(stringToBool(temp[l]));
+            temp.erase(temp.begin() + l + 1);
+            temp.erase(temp.begin() + l - 1);
+            l--; 
+        }
+    }
+
+    for (int m = 0; m < temp.size(); m++) {
+        if (temp[m] == "->") {
+            bool temp2 = stringToBool(temp[m + 1]);
+            bool temp3 = stringToBool(temp[m - 1]);
+            temp[m] = boolToString(applyOp('-', temp3, temp2));
+            a.push_back(stringToBool(temp[m]));
+            temp.erase(temp.begin() + m + 1);
+            temp.erase(temp.begin() + m - 1);
+            m--; 
+        }
+    }
+
+    for (int n = 0; n < a.size(); n++) {
+        cout << setw(10) << a[n];
+    }
+    cout << endl;
+}
+
+int main() {
+    cout << "합성명제 :  ";
+    string s;
+    cin >> s;
+    
+    switch (checknum(s)) {
+    case 0:
+        break;
+
+    case 1:
+        cout << "너무 많은 연산자를 입력하였습니다." << endl;
+        
+        return 0;
+    case 2:
+        cout << "너무 많은 변수를 입력하였습니다." << endl;
+        return 0;
+    }
+    evaluationTitle(s);
+    cout << "-------------------------------------------" << endl;
+    for (int P = 0; P <= 1; P++) {
+        for (int Q = 0; Q <= 1; Q++) {
+            for (int R = 0; R <= 1; R++) {
+                evaluationTruthTable(s, P, Q, R);
+            }
+        }
+    }
+}
